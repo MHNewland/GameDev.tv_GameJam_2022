@@ -10,12 +10,13 @@ public class PlayerController : MonoBehaviour
     private Rigidbody2D playerRB;
 
     private float acceleration = 20;
-    private float maxSpeed = 10;
-    private float jumpForce = 7;
+    private float maxXSpeed = 5;
+    private float maxVSpeed = 10;
+    private float jumpForce = 10;
 
     [SerializeField]
     private bool isGrounded;
-    
+
     [SerializeField]
     private bool doubleJump;
 
@@ -34,6 +35,8 @@ public class PlayerController : MonoBehaviour
     private float yVel;
 
     Vector3 newPosition;
+    Vector3 prevPos, rayPos;
+
 
     // Start is called before the first frame update
     void Start()
@@ -48,21 +51,39 @@ public class PlayerController : MonoBehaviour
 
         power_DJump = false;
         power_Float = false;
-        
+
+        Physics.gravity = Physics.gravity * 100;
+
     }
 
     // Update is called once per frame
     void Update()
     {
+        HandleInput();
+        ConstrainSpeed();
+    }
 
+    private void HandleInput()
+    {
         if (Input.GetKey(KeyCode.RightArrow))
         {
             playerRB.AddForce(Vector2.right * acceleration);
         }
 
+        if (Input.GetKeyUp(KeyCode.RightArrow) && xVel > 0)
+        {
+            playerRB.AddForce(Vector2.left * xVel, ForceMode2D.Impulse);
+        }
+
+
         if (Input.GetKey(KeyCode.LeftArrow))
         {
             playerRB.AddForce(Vector2.left * acceleration);
+        }
+
+        if (Input.GetKeyUp(KeyCode.LeftArrow) && xVel < 0)
+        {
+            playerRB.AddForce(Vector2.right * -xVel, ForceMode2D.Impulse);
         }
 
 
@@ -70,7 +91,7 @@ public class PlayerController : MonoBehaviour
         {
             if (isGrounded || (power_DJump && doubleJump))
             {
-                playerRB.velocity = new Vector2(playerRB.velocity.x, 0);
+                //playerRB.velocity = new Vector2(playerRB.velocity.x, 0);
                 playerRB.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
                 if (!isGrounded)
                 {
@@ -82,34 +103,6 @@ public class PlayerController : MonoBehaviour
                 }
             }
         }
-
-        if (power_Float) { 
-            if (Input.GetKey(KeyCode.Space) || Input.GetKey(KeyCode.UpArrow)) {
-
-                Physics.gravity = Physics.gravity * .25f;
-                if (playerRB.velocity.y < -3)
-                {
-                    playerRB.velocity = new Vector3(playerRB.velocity.x, -3);
-                }
-            }
-            else
-            {
-                Physics.gravity = defaultGrav;
-            }
-        }
-
-        if(Input.GetKeyUp(KeyCode.RightArrow) && xVel > 0)
-        {
-            playerRB.AddForce(Vector2.left * xVel, ForceMode2D.Impulse);
-        }
-
-        if (Input.GetKeyUp(KeyCode.LeftArrow) && xVel < 0)
-        {
-            playerRB.AddForce(Vector2.right * -xVel, ForceMode2D.Impulse);
-        }
-
-        ConstrainSpeed();
-
     }
 
     private void ConstrainSpeed()
@@ -117,19 +110,24 @@ public class PlayerController : MonoBehaviour
         xVel = playerRB.velocity.x;
         yVel = playerRB.velocity.y;
 
-        if (xVel > maxSpeed)
+        if (xVel > maxXSpeed)
         {
-            xVel = maxSpeed;
+            xVel = maxXSpeed;
         }
 
-        if (xVel < -maxSpeed)
+        if (xVel < -maxXSpeed)
         {
-            xVel = -maxSpeed;
+            xVel = -maxXSpeed;
         }
 
-        if (yVel > maxSpeed)
+        if (yVel > maxVSpeed)
         {
-            yVel = maxSpeed;
+            yVel = maxVSpeed;
+        }
+
+        if(power_Float && yVel < -3)
+        {
+            yVel = -3;
         }
 
         playerRB.velocity = new Vector2(xVel, yVel);
@@ -140,7 +138,8 @@ public class PlayerController : MonoBehaviour
         if (collision.collider.CompareTag("Ground"))
         {
             isGrounded = true;
-            if(power_DJump) doubleJump = true;
+            if (power_DJump) doubleJump = true;
         }
     }
+
 }
