@@ -12,7 +12,7 @@ public class PlayerController : MonoBehaviour
     private float acceleration = 20;
     private float maxXSpeed = 5;
     private float maxVSpeed = 10;
-    private float jumpForce = 10;
+    private float jumpForce = 13;
 
     [SerializeField]
     private bool isGrounded;
@@ -36,6 +36,7 @@ public class PlayerController : MonoBehaviour
 
     Vector3 newPosition;
     Vector3 prevPos, rayPos;
+    RaycastHit2D hit;
 
 
     // Start is called before the first frame update
@@ -65,29 +66,29 @@ public class PlayerController : MonoBehaviour
 
     private void HandleInput()
     {
-        if (Input.GetKey(KeyCode.RightArrow))
+        if (Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D))
         {
             playerRB.AddForce(Vector2.right * acceleration);
         }
 
-        if (Input.GetKeyUp(KeyCode.RightArrow) && xVel > 0)
+        if ((Input.GetKeyUp(KeyCode.RightArrow) || Input.GetKeyUp(KeyCode.D)) && xVel > 0)
         {
             playerRB.AddForce(Vector2.left * xVel, ForceMode2D.Impulse);
         }
 
 
-        if (Input.GetKey(KeyCode.LeftArrow))
+        if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.A))
         {
             playerRB.AddForce(Vector2.left * acceleration);
         }
 
-        if (Input.GetKeyUp(KeyCode.LeftArrow) && xVel < 0)
+        if ((Input.GetKeyUp(KeyCode.LeftArrow) || Input.GetKeyUp(KeyCode.A)) && xVel < 0)
         {
             playerRB.AddForce(Vector2.right * -xVel, ForceMode2D.Impulse);
         }
 
 
-        if ((Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.UpArrow)))
+        if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKey(KeyCode.W))
         {
             if (isGrounded || (power_DJump && doubleJump))
             {
@@ -137,8 +138,14 @@ public class PlayerController : MonoBehaviour
     {
         if (collision.collider.CompareTag("Ground"))
         {
-            isGrounded = true;
-            if (power_DJump) doubleJump = true;
+            hit = Physics2D.Raycast( playerGO.transform.position, Vector2.down, playerGO.GetComponent<Collider2D>().bounds.size.y);
+            Debug.DrawRay(playerGO.transform.position, Vector2.down, Color.yellow, playerGO.GetComponent<Collider2D>().bounds.size.y);
+            Debug.Log("hit: " + hit.collider.tag);
+            if (hit.collider.CompareTag("Ground"))
+            {
+                isGrounded = true;
+                if (power_DJump) doubleJump = true;
+            }
         }
     }
 
