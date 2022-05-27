@@ -1,0 +1,2 @@
+C:\Users\Matt\Desktop\GameJam\GameDev.tv_GameJam_2022\GameJam\obj\Debug\Assembly-CSharp-Editor.csprojAssemblyReference.cache
+C:\Users\Matt\Desktop\GameJam\GameDev.tv_GameJam_2022\GameJam\obj\Debug\Assembly-CSharp-Editor.csproj.CoreCompileInputs.cache

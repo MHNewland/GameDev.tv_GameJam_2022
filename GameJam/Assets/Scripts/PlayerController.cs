@@ -2,17 +2,29 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
+    private Vector2 moveInput;
+    private Vector2 rightRayVector;
+    private Vector2 leftRayVector;
+    private RaycastHit2D rightRay;
+    private RaycastHit2D leftRay;
+    private Rigidbody2D playerRB;
+    private BoxCollider2D feet;
+    private CapsuleCollider2D playerColider;
+    private SpriteRenderer playerSprite;
+    private Animator playerAnimator;
+
+    private float moveSpeed = 5;
+    private float jumpForce = 13;
+
     [SerializeField]
     private GameObject playerGO;
-    private Rigidbody2D playerRB;
 
-    private float acceleration = 20;
-    private float maxXSpeed = 5;
-    private float maxVSpeed = 10;
-    private float jumpForce = 13;
+    [SerializeField]
+    private GameObject[] SpawnPoints;
 
     [SerializeField]
     private bool isGrounded;
@@ -26,18 +38,11 @@ public class PlayerController : MonoBehaviour
     [SerializeField]
     private bool power_Float;
 
-    private Vector3 defaultGrav = Physics.gravity;
-
-    [SerializeField]
-    private float xVel;
-
     [SerializeField]
     private float yVel;
 
-    Vector3 newPosition;
-    Vector3 prevPos, rayPos;
-    RaycastHit2D hit;
-
+    [SerializeField]
+    private float xVel;
 
     // Start is called before the first frame update
     void Start()
@@ -46,12 +51,17 @@ public class PlayerController : MonoBehaviour
         if (playerGO != null)
         {
             playerRB = playerGO.GetComponent<Rigidbody2D>();
+            feet = playerGO.GetComponent<BoxCollider2D>();
+            playerColider = playerGO.GetComponent<CapsuleCollider2D>();
+            playerSprite = playerGO.GetComponent<SpriteRenderer>();
+            playerAnimator = playerGO.GetComponent<Animator>();
         }
+
         isGrounded = true;
         doubleJump = false;
-
         power_DJump = false;
         power_Float = false;
+
 
         Physics.gravity = Physics.gravity * 100;
 
@@ -60,47 +70,93 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        HandleInput();
+        Run();
+        FlipSprite();
+        PlayerState();
         ConstrainSpeed();
     }
 
-    private void HandleInput()
+    private void PlayerState()
     {
-        if (Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D))
+
+        if(playerRB.velocity.y < -.15f)
         {
-            playerRB.AddForce(Vector2.right * acceleration);
+            playerAnimator.SetBool("IsFalling", true);
+        }
+        else
+        {
+            playerAnimator.SetBool("IsFalling", false);
         }
 
-        if ((Input.GetKeyUp(KeyCode.RightArrow) || Input.GetKeyUp(KeyCode.D)) && xVel > 0)
+    }
+
+    
+
+    void OnMove(InputValue value)
+    {
+        moveInput = value.Get<Vector2>();
+    }
+
+    void Run()
+    {
+        xVel = playerRB.velocity.x;
+        rightRayVector = new Vector2(playerGO.transform.position.x, playerGO.transform.position.y);
+        rightRay = Physics2D.Raycast(rightRayVector, Vector2.right, 0.3f);
+
+        Debug.DrawRay(rightRayVector, Vector2.right * 0.3f, Color.red);
+        if (rightRay.collider != null)
         {
-            playerRB.AddForce(Vector2.left * xVel, ForceMode2D.Impulse);
+            if (!rightRay.collider.CompareTag("Ground"))
+            {
+                Debug.Log("not ground");
+                playerRB.velocity = new Vector2(moveInput.x * moveSpeed, playerRB.velocity.y);
+            }
+            else
+            {
+                Debug.Log(rightRay.collider.tag);
+            }
+        }
+        else
+        {
+            Debug.Log("null");
+            playerRB.velocity = new Vector2(moveInput.x * moveSpeed, playerRB.velocity.y);
+
         }
 
-
-        if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.A))
+    }
+    
+    void FlipSprite()
+    {
+        bool playerHasXVel = playerRB.velocity.x != 0;
+        if (playerHasXVel)
         {
-            playerRB.AddForce(Vector2.left * acceleration);
+            playerSprite.flipX = playerRB.velocity.x < 0;
+            playerAnimator.SetBool("IsRunning", true);
         }
-
-        if ((Input.GetKeyUp(KeyCode.LeftArrow) || Input.GetKeyUp(KeyCode.A)) && xVel < 0)
+        else
         {
-            playerRB.AddForce(Vector2.right * -xVel, ForceMode2D.Impulse);
+            playerAnimator.SetBool("IsRunning", false);
         }
+    }
 
-
-        if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKey(KeyCode.W))
+    void OnJump(InputValue value)
+    {
+     
+        if (value.isPressed)
         {
             if (isGrounded || (power_DJump && doubleJump))
             {
-                //playerRB.velocity = new Vector2(playerRB.velocity.x, 0);
+                playerAnimator.SetBool("IsJumping", true);
+                playerAnimator.SetBool("IsFalling", false);
+                playerRB.velocity = new Vector2(playerRB.velocity.x, 0);
                 playerRB.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
-                if (!isGrounded)
+                if (isGrounded)
                 {
-                    doubleJump = false;
+                    isGrounded = false;
                 }
                 else
                 {
-                    isGrounded = false;
+                    doubleJump = false;
                 }
             }
         }
@@ -108,45 +164,51 @@ public class PlayerController : MonoBehaviour
 
     private void ConstrainSpeed()
     {
-        xVel = playerRB.velocity.x;
         yVel = playerRB.velocity.y;
 
-        if (xVel > maxXSpeed)
-        {
-            xVel = maxXSpeed;
-        }
-
-        if (xVel < -maxXSpeed)
-        {
-            xVel = -maxXSpeed;
-        }
-
-        if (yVel > maxVSpeed)
-        {
-            yVel = maxVSpeed;
-        }
-
-        if(power_Float && yVel < -3)
+        if(power_Float && playerRB.velocity.y < -3)
         {
             yVel = -3;
         }
 
-        playerRB.velocity = new Vector2(xVel, yVel);
+        playerRB.velocity = new Vector2(playerRB.velocity.x, yVel);
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.collider.CompareTag("Ground"))
         {
-            hit = Physics2D.Raycast( playerGO.transform.position, Vector2.down, playerGO.GetComponent<Collider2D>().bounds.size.y);
-            Debug.DrawRay(playerGO.transform.position, Vector2.down, Color.yellow, playerGO.GetComponent<Collider2D>().bounds.size.y);
-            Debug.Log("hit: " + hit.collider.tag);
-            if (hit.collider.CompareTag("Ground"))
+            if (feet.IsTouchingLayers(LayerMask.GetMask("Ground")))
             {
+                playerAnimator.SetBool("IsJumping", false);
                 isGrounded = true;
                 if (power_DJump) doubleJump = true;
             }
         }
     }
+
+    private void OnCollisionStay2D(Collision2D collision)
+    {
+        if (!isGrounded && collision.collider.CompareTag("Ground"))
+        {
+            if (feet.IsTouchingLayers(LayerMask.GetMask("Ground")))
+            {
+                playerAnimator.SetBool("IsJumping", false);
+                isGrounded = true;
+                if (power_DJump) doubleJump = true;
+            }
+        }
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.CompareTag("Death"))
+        {
+            int spID = (int)Math.Round((double)(UnityEngine.Random.Range(0, SpawnPoints.Length)),1);
+            playerGO.transform.position = SpawnPoints[spID].transform.position;
+            playerRB.velocity = Vector2.zero;
+        }
+    }
+
 
 }
