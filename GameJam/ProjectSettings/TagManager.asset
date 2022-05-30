@@ -6,6 +6,10 @@ TagManager:
   tags:
   - Ground
   - Death
+  - SpawnPoint
+  - Creature
+  - Jump
+  - Turn
   layers:
   - Default
   - TransparentFX

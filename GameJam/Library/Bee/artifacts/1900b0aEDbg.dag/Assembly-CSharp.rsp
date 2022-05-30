@@ -341,8 +341,9 @@
 "Assets/Downloaded Assets/Free 2D Cartoon Parallax Background/Demo/Script/ParallaxBackground_0.cs"
 "Assets/Downloaded Assets/Simple 2D Platformer BE2/ReadMe/Scripts/ReadmeBE2.cs"
 "Assets/Scripts/CameraController.cs"
+"Assets/Scripts/CreatureController.cs"
+"Assets/Scripts/MoveController.cs"
 "Assets/Scripts/PlayerController.cs"
-"Assets/Scripts/test.cs"
 -langversion:8.0
 
 /deterministic
