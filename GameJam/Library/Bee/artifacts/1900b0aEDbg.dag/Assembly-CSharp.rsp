@@ -342,7 +342,9 @@
 "Assets/Downloaded Assets/Simple 2D Platformer BE2/ReadMe/Scripts/ReadmeBE2.cs"
 "Assets/Scripts/CameraController.cs"
 "Assets/Scripts/CreatureController.cs"
+"Assets/Scripts/Hidden.cs"
 "Assets/Scripts/MoveController.cs"
+"Assets/Scripts/NarrationScript.cs"
 "Assets/Scripts/PlayerController.cs"
 -langversion:8.0
 

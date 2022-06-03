@@ -10,6 +10,7 @@ TagManager:
   - Creature
   - Jump
   - Turn
+  - Naration
   layers:
   - Default
   - TransparentFX
@@ -55,4 +56,7 @@ TagManager:
     locked: 0
   - name: Player
     uniqueID: 54838767
+    locked: 0
+  - name: Overlay
+    uniqueID: 2039963059
     locked: 0

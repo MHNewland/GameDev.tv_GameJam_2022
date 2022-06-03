@@ -40,13 +40,13 @@ public class PlayerController : MonoBehaviour
     private bool doubleJump;
 
     [SerializeField]
-    private bool power_DJump;
+    public bool power_DJump { get; private set; }
 
     [SerializeField]
-    private bool power_Float;
+    public bool power_Float { get; private set; }
 
     [SerializeField]
-    private bool power_Speed;
+    public bool power_Speed { get; private set; }
 
     [SerializeField]
     private float yVel;
@@ -55,7 +55,7 @@ public class PlayerController : MonoBehaviour
     private float xVel;
 
     [SerializeField]
-    private bool isDead;
+    public bool isDead { get; private set; }
 
     // Start is called before the first frame update
     void Start()
@@ -170,10 +170,8 @@ public class PlayerController : MonoBehaviour
         {
             case ("Death"):
                 {
-                    Debug.Log("tile");
                     if(collision.collider.TryGetComponent<Tilemap>( out Tilemap tile))
                     {
-                        Debug.Log(tile.name);
                         switch (tile.name)
                         {
                             case "Spikes":
@@ -195,6 +193,7 @@ public class PlayerController : MonoBehaviour
                 }
             case ("Creature"):
                 {
+                    
                     power_Speed = true;
                     StartCoroutine(Die());
                     break;
@@ -231,11 +230,6 @@ public class PlayerController : MonoBehaviour
                         isGrounded = true;
                         if (power_DJump) doubleJump = true;
                     }
-                    break;
-                }
-            case "Creature":
-                {
-                    Destroy(collision.gameObject);
                     break;
                 }
             default:

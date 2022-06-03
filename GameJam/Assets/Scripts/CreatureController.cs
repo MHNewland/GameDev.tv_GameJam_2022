@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
 public class CreatureController : MonoBehaviour
 {
@@ -9,6 +10,10 @@ public class CreatureController : MonoBehaviour
     float speed;
     float direction;
     float jumpPower;
+    int spawnPointNum;
+
+    [SerializeField]
+    private GameObject[] spawnPoints;
 
     // Start is called before the first frame update
     void Start()
@@ -27,8 +32,6 @@ public class CreatureController : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        Debug.Log("Creature collistion: " + collision.tag);
-
         switch (collision.tag)
         {
             case "Jump":
@@ -41,8 +44,33 @@ public class CreatureController : MonoBehaviour
                     direction *= -1;
                     break;
                 }
+            case "Spikes":
+                {
+                    RespawnCreature();
+                    break;
+                }
+            case "Woorld border":
+                {
+                    RespawnCreature();
+                    break;
+                }
+            case "Player":
+                {
+                    if (collision.gameObject.TryGetComponent<BoxCollider2D>(out BoxCollider2D feet))
+                    {
+                        RespawnCreature();
+                    }
+                    break;
+                }
             default:
                 break;
         }
+
+    }
+
+    private void RespawnCreature()
+    {
+        spawnPointNum = Random.Range(0, spawnPoints.Length);
+        transform.position = spawnPoints[spawnPointNum].transform.position;
     }
 }
